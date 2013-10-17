@@ -26,7 +26,7 @@ let g:indexed_search_colors=0
 " or :ShowSearchIndex to show at which match index you are,
 " without moving cursor.
 "
-" If cursor is exactly on the match, the message i 
+" If cursor is exactly on the match, the message is: 
 "     At Nth match of M
 " If cursor is between matches, following messages are displayed:
 "     Betwen matches 189-190 of 300
@@ -73,7 +73,7 @@ if !exists("g:search_index_maxhit")
 endif
 " -------------- End of Performance tuning limits ------------------
 
-let save_cpo = &cpo
+let s:save_cpo = &cpo
 set cpo&vim
 
 
@@ -101,47 +101,47 @@ nnoremap <silent>g/        :call ShowCurrentSearchIndex(1,'')<cr>
 "                 with supertab iInde<c-x><c-p>(resulted in something like recursive <c-r>=
 " after  061120,  I remap [/?] instead of remapping <cr>. Works in vim6, too
 
-nnoremap / :call DelaySearchIndex(0,'')<cr>/
-nnoremap ? :call DelaySearchIndex(0,'')<cr>?
+nnoremap / :call <SID>DelaySearchIndex(0,'')<cr>/
+nnoremap ? :call <SID>DelaySearchIndex(0,'')<cr>?
 
 
-let ScheduledEcho = ''
-let DelaySearchIndex = 0
+let s:ScheduledEcho = ''
+let s:DelaySearchIndex = 0
 let g:IndSearchUT = &ut
 
 
-func! ScheduleEcho(msg,highlight)
+func! s:ScheduleEcho(msg,highlight)
 
     "if &ut > 50 | let g:IndSearchUT=&ut | let &ut=50 | endif
     "if &ut > 100 | let g:IndSearchUT=&ut | let &ut=100 | endif
     if &ut > 200 | let g:IndSearchUT=&ut | let &ut=200 | endif
     " 061116 &ut is sometimes not restored and drops permanently to 50. But how ?
 
-    let ScheduledEcho      = a:msg
+    let s:ScheduledEcho      = a:msg
     let use_colors = !exists('g:indexed_search_colors') || g:indexed_search_colors
-    let ScheduledHighlight = ( use_colors ? a:highlight : "None" )
+    let s:ScheduledHighlight = ( use_colors ? a:highlight : "None" )
 
     aug IndSearchEcho
 
     au CursorHold * 
       \ exe 'set ut='.g:IndSearchUT | 
-      \ if DelaySearchIndex | call ShowCurrentSearchIndex(0,'') | 
-      \    let ScheduledEcho = Msg | let ScheduledHighlight = Highlight |
-      \    let DelaySearchIndex = 0 | endif |
-      \ if ScheduledEcho != "" 
-      \ | exe "echohl ".ScheduledHighlight | echo ScheduledEcho | echohl None
-      \ | let ScheduledEcho='' | 
+      \ if s:DelaySearchIndex | call ShowCurrentSearchIndex(0,'') | 
+      \    let s:ScheduledEcho = s:Msg | let s:ScheduledHighlight = s:Highlight |
+      \    let s:DelaySearchIndex = 0 | endif |
+      \ if s:ScheduledEcho != "" 
+      \ | exe "echohl ".s:ScheduledHighlight | echo s:ScheduledEcho | echohl None
+      \ | let s:ScheduledEcho='' | 
       \ endif | 
       \ aug IndSearchEcho | exe 'au!' | aug END | aug! IndSearchEcho
     " how about moving contents of this au into function
 
     aug END
-endfun " ScheduleEcho
+endfun " s:ScheduleEcho
 
 
-func! DelaySearchIndex(force,cmd)
-    let DelaySearchIndex = 1
-    call ScheduleEcho('','')
+func! s:DelaySearchIndex(force,cmd)
+    let s:DelaySearchIndex = 1
+    call s:ScheduleEcho('','')
 endfunc
 
 
@@ -149,15 +149,15 @@ func! ShowCurrentSearchIndex(force, cmd)
     " NB: function saves and restores @/ and direction
     " this used to cause me many troubles
 
-    call CountCurrentSearchIndex(a:force, a:cmd) " -> Msg, Highlight
+    call s:CountCurrentSearchIndex(a:force, a:cmd) " -> s:Msg, s:Highlight
 
-    if Msg != ""
-        call ScheduleEcho(Msg, Highlight )
+    if s:Msg != ""
+        call s:ScheduleEcho(s:Msg, s:Highlight )
     endif
 endfun
 
 
-function! MilliSince( start )
+function! s:MilliSince( start )
     " usage: let s = reltime() | sleep 100m | let milli = MilliSince(s)
     let x = reltimestr( reltime( a:start ) )
     " there can be leading spaces in x
@@ -168,9 +168,9 @@ function! MilliSince( start )
 endfun
 
 
-func! CountCurrentSearchIndex(force, cmd)
-" sets globals -> Msg , Highlight
-    let Msg = '' | let Highlight = ''
+func! s:CountCurrentSearchIndex(force, cmd)
+" sets globals -> s:Msg , s:Highlight
+    let s:Msg = '' | let s:Highlight = ''
     let builtin_errmsg = ""
 
     " echo "" | " make sure old msg is erased
@@ -237,29 +237,29 @@ func! CountCurrentSearchIndex(force, cmd)
             let too_slow=1 "  if too_slow, we'll want to switch the work over to CursorHold
             let num=">".(num-1)
         else
-            let Msg = ">".(num-1)." matches"
+            let s:Msg = ">".(num-1)." matches"
             if v:errmsg != ""
-                let Msg = ""  " avoid overwriting builtin errmsg with our ">1000 matches"
+                let s:Msg = ""  " avoid overwriting builtin errmsg with our ">1000 matches"
             endif
             return ""
         endif
     endif
 
-    let Highlight = "Directory"
+    let s:Highlight = "Directory"
     if num == "0"
-        let Highlight = "Error"
+        let s:Highlight = "Error"
         let prefix = "No matches "
     elseif exact == 1 && num==1
-        " Highlight remains default
+        " s:Highlight remains default
         "let prefix = "At single match"
         let prefix = "Single match"
     elseif exact == 1
-        let Highlight = "Search"
+        let s:Highlight = "Search"
         "let prefix = "At 1st  match, # 1 of " . num
         "let prefix = "First match, # 1 of " . num
         let prefix = "First of " . num . " matches "
     elseif exact == num
-        let Highlight = "LineNr"
+        let s:Highlight = "LineNr"
         "let prefix = "Last match, # ".num." of " . num
         "let prefix = "At last match, # ".num." of " . num
         let prefix = "Last of " . num . " matches "
@@ -273,13 +273,13 @@ func! CountCurrentSearchIndex(force, cmd)
             let prefix = "Match ".exact." of " . num
         endif
     elseif after == 0
-        let Highlight = "MoreMsg"
+        let s:Highlight = "MoreMsg"
         let prefix = "Before first match, of ".num." matches "
         if num == 1
             let prefix = "Before single match"
         endif
     elseif after == num
-        let Highlight = "WarningMsg"
+        let s:Highlight = "WarningMsg"
         let prefix = "After last match of ".num." matches "
         if num == 1
             let prefix = "After single match"
@@ -287,7 +287,7 @@ func! CountCurrentSearchIndex(force, cmd)
     else
         let prefix = "Between matches ".after."-".(after+1)." of ".num
     endif
-    let Msg = prefix . "  /".@/ . "/"
+    let s:Msg = prefix . "  /".@/ . "/"
     return ""
 endfunc
 
@@ -302,7 +302,7 @@ endfunc
 " No matchess              <-same
 " -------------------------------------------
 
-let &cpo = save_cpo
+let &cpo = s:save_cpo
 
 " Last changes
 " 2006-10-20 added limitation by # of matches
