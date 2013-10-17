@@ -101,8 +101,8 @@ nnoremap <silent>g/        :call ShowCurrentSearchIndex(1,'')<cr>
 "                 with supertab iInde<c-x><c-p>(resulted in something like recursive <c-r>=
 " after  061120,  I remap [/?] instead of remapping <cr>. Works in vim6, too
 
-nnoremap / :call <SID>DelaySearchIndex(0,'')<cr>/
-nnoremap ? :call <SID>DelaySearchIndex(0,'')<cr>?
+nnoremap / :call DelaySearchIndex(0,'')<cr>/
+nnoremap ? :call DelaySearchIndex(0,'')<cr>?
 
 
 let s:ScheduledEcho = ''
@@ -139,7 +139,7 @@ func! s:ScheduleEcho(msg,highlight)
 endfun " s:ScheduleEcho
 
 
-func! s:DelaySearchIndex(force,cmd)
+func! DelaySearchIndex(force,cmd)
     let s:DelaySearchIndex = 1
     call s:ScheduleEcho('','')
 endfunc
