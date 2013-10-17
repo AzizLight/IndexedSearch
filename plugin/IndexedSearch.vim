@@ -80,29 +80,31 @@ set cpo&vim
 command! ShowSearchIndex :call ShowCurrentSearchIndex(1,'')
 
 
-" before 061114  we had op invocation inside the function but this
-"                did not properly keep @/ and direction (func.return restores @/ and direction)
-" after  061114  invoking op inside the function does not work because
-"                @/ and direction is restored at return from function
-"                We must have op invocation at the toplevel of mapping even though this
-"                makes mappings longer.
-nnoremap <silent>n :let v:errmsg=''<cr>:silent! norm! nzz<cr>:call ShowCurrentSearchIndex(0,'!')<cr>
-nnoremap <silent>N :let v:errmsg=''<cr>:silent! norm! Nzz<cr>:call ShowCurrentSearchIndex(0,'!')<cr>
-nnoremap <silent>* :let v:errmsg=''<cr>:silent! norm! *<c-o>zz<cr>:call ShowCurrentSearchIndex(0,'!')<cr>
-nnoremap <silent># :let v:errmsg=''<cr>:silent! norm! #<c-o>zz<cr>:call ShowCurrentSearchIndex(0,'!')<cr>
+if !exists("g:indexed_search_no_map")
+  " before 061114  we had op invocation inside the function but this
+  "                did not properly keep @/ and direction (func.return restores @/ and direction)
+  " after  061114  invoking op inside the function does not work because
+  "                @/ and direction is restored at return from function
+  "                We must have op invocation at the toplevel of mapping even though this
+  "                makes mappings longer.
+  nnoremap <silent>n :let v:errmsg=''<cr>:silent! norm! nzz<cr>:call ShowCurrentSearchIndex(0,'!')<cr>
+  nnoremap <silent>N :let v:errmsg=''<cr>:silent! norm! Nzz<cr>:call ShowCurrentSearchIndex(0,'!')<cr>
+  nnoremap <silent>* :let v:errmsg=''<cr>:silent! norm! *<c-o>zz<cr>:call ShowCurrentSearchIndex(0,'!')<cr>
+  nnoremap <silent># :let v:errmsg=''<cr>:silent! norm! #<c-o>zz<cr>:call ShowCurrentSearchIndex(0,'!')<cr>
 
 
-nnoremap <silent>\/        :call ShowCurrentSearchIndex(1,'')<cr>
-nnoremap <silent>\\        :call ShowCurrentSearchIndex(1,'')<cr>
-nnoremap <silent>g/        :call ShowCurrentSearchIndex(1,'')<cr>
+  nnoremap <silent>\/        :call ShowCurrentSearchIndex(1,'')<cr>
+  nnoremap <silent>\\        :call ShowCurrentSearchIndex(1,'')<cr>
+  nnoremap <silent>g/        :call ShowCurrentSearchIndex(1,'')<cr>
 
 
-" before 061120,  I had cmapping for <cr> which was very intrusive. Didn't work
-"                 with supertab iInde<c-x><c-p>(resulted in something like recursive <c-r>=
-" after  061120,  I remap [/?] instead of remapping <cr>. Works in vim6, too
+  " before 061120,  I had cmapping for <cr> which was very intrusive. Didn't work
+  "                 with supertab iInde<c-x><c-p>(resulted in something like recursive <c-r>=
+  " after  061120,  I remap [/?] instead of remapping <cr>. Works in vim6, too
 
-nnoremap / :call DelaySearchIndex(0,'')<cr>/
-nnoremap ? :call DelaySearchIndex(0,'')<cr>?
+  nnoremap / :call DelaySearchIndex(0,'')<cr>/
+  nnoremap ? :call DelaySearchIndex(0,'')<cr>?
+endif
 
 
 let s:ScheduledEcho = ''
